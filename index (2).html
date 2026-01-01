@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BaQlabs - Research. Backtest. Validate</title>
+  <meta name="description" content="HFTLABS partners with elite quants. We invest 100% and provide data, HFT infrastructure, and BAQLABS backtesting. Quants keep 60% of net profit." />
+  <style>
+    :root {
+      --bg: #fff;
+      --fg: #000;
+      --muted: rgba(0,0,0,0.6);
+      --line: rgba(0,0,0,0.12);
+      --shadow: 0 10px 30px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.06);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, "Apple Color Emoji", "Segoe UI Emoji"; background: var(--bg); color: var(--fg); line-height: 1.6; }
+    a { color: var(--fg); text-decoration: none; border-bottom: 1px solid var(--line); }
+    a:hover { border-bottom-color: var(--fg); }
+
+    /* Anchor scroll offset for sticky navbar + announcement */
+    section { scroll-margin-top: 160px; }
+    @media (max-width: 640px){
+      section { scroll-margin-top: 210px; }
+    }
+
+    /* Layout */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    .stack-xxl{ display:grid; gap:64px; }
+    .stack-xl{ display:grid; gap:40px; }
+    .stack-lg{ display:grid; gap:28px; }
+    .stack-md{ display:grid; gap:18px; }
+
+    /* Sticky container for navbar + announcement */
+    .top-chrome { position: sticky; top: 0; z-index: 100; }
+
+    header.topbar { position: relative; backdrop-filter: blur(10px); background: rgba(255,255,255,0.7); border-bottom: 1px solid var(--line); }
+    .topbar .wrap { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; }
+    .brand { display:flex; align-items:center; gap:12px; }
+    .brand svg { width: 28px; height: 28px; }
+    nav a { margin-left: 20px; font-weight: 500; }
+
+    /* Hero */
+    .hero { position: relative; overflow: hidden; }
+    .hero .grid { display:grid; grid-template-columns: 1.1fr 0.9fr; gap:48px; align-items: center; padding: 72px 0; }
+    .eyebrow { letter-spacing: .18em; text-transform: uppercase; font-size: 12px; border:1px solid var(--line); padding:6px 10px; border-radius:999px; display:inline-block; }
+    h1 { font-size: clamp(36px, 6vw, 64px); line-height: 1.05; margin: 10px 0 16px; letter-spacing:-0.02em; }
+    .lead { font-size: clamp(16px, 2.5vw, 20px); color: var(--muted); }
+    .cta-row{ display:flex; gap:12px; flex-wrap:wrap; margin-top: 18px; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:10px; padding: 12px 18px; border:1px solid var(--fg); border-radius: 999px; background:#fff; color:#000; box-shadow: var(--shadow); cursor:pointer; transition: transform .2s ease; }
+    .btn:hover{ transform: translateY(-1px); }
+    .btn.secondary{ border-color: var(--line); box-shadow:none; }
+
+    /* Cards */
+    .cards { display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+    @media (max-width: 980px){ .hero .grid{ grid-template-columns: 1fr; } .cards{ grid-template-columns: 1fr; } }
+    .card { border:1px solid var(--line); border-radius: var(--radius); padding: 22px; box-shadow: var(--shadow); position: relative; overflow:hidden; background:#fff; }
+    .card h3 { margin: 8px 0 6px; font-size: 20px; }
+    .card p { color: var(--muted); margin: 0; }
+    .badge { font-size: 12px; padding: 6px 10px; border:1px solid var(--line); border-radius: 999px; display:inline-block; }
+
+    /* Sections */
+    section { padding: 64px 0; }
+    .split { display:grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: center; }
+    @media (max-width: 980px){ .split{ grid-template-columns: 1fr; } }
+
+    /* Process stepper (scroll-hijack) */
+    #process {
+      position: relative;
+    }
+    .stepper {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    /* Step list (all visible, active one highlighted) */
+    .step-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .step-item {
+      display: flex;
+      gap: 18px;
+      padding: 20px 22px;
+      border-left: 3px solid var(--line);
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .step-item:hover {
+      background: rgba(0,0,0,0.02);
+    }
+    .step-item .step-num {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--muted);
+      transition: all 0.25s ease;
+    }
+    .step-item .step-text h3 {
+      font-size: 18px;
+      margin: 0 0 4px;
+      transition: color 0.25s ease;
+    }
+    .step-item .step-text p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.55;
+    }
+    .step-item.active {
+      border-left-color: var(--fg);
+      background: rgba(0,0,0,0.03);
+    }
+    .step-item.active .step-num {
+      background: var(--fg);
+      border-color: var(--fg);
+      color: #fff;
+    }
+    .step-item.active .step-text h3 {
+      color: var(--fg);
+    }
+    .step-item.completed .step-num {
+      background: var(--fg);
+      border-color: var(--fg);
+      color: #fff;
+    }
+
+    /* Form */
+    form { display:grid; gap: 12px; }
+    .field { display:grid; gap:6px; }
+    input, textarea, select { width: 100%; border:1px solid var(--line); border-radius: 12px; padding: 12px 14px; background:#fff; color:#000; font-size: 16px; }
+    textarea { min-height: 120px; resize: vertical; }
+
+    /* Quant Competition (dark theme section) */
+    #apply {
+      position: relative;
+      overflow: hidden;
+      background: radial-gradient(1200px 600px at 20% 0%, rgba(255,255,255,0.08), transparent 60%),
+                  radial-gradient(900px 500px at 80% 30%, rgba(255,255,255,0.06), transparent 55%),
+                  #0b0f19;
+      color: rgba(255,255,255,0.92);
+    }
+    /* Gridlines overlay (like hero) */
+    #apply::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      background-image:
+        linear-gradient(to right, rgba(255,255,255,.08) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,.08) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse at center, black 40%, transparent 75%);
+      opacity: 0.40;
+    }
+    /* Keep Quant Comp content above the background overlays */
+    #apply .container { position: relative; z-index: 1; }
+    #apply .comp-logo{
+      display: block;
+      width: min(340px, 100%);
+      max-width: 100%;
+      height: auto;
+      margin: 0 0 14px;
+      border-radius: 0;
+      border: none;
+      background: transparent;
+      margin-bottom: 25px;
+    }
+    #apply .lead { color: rgba(255,255,255,0.72); }
+    #apply a { color: rgba(255,255,255,0.92); border-bottom-color: rgba(255,255,255,0.22); }
+    #apply a:hover { border-bottom-color: rgba(255,255,255,0.92); }
+    #apply .card {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(255,255,255,0.14);
+      box-shadow: none;
+    }
+    #apply .card p { color: rgba(255,255,255,0.72); }
+    #apply .badge {
+      color: rgba(255,255,255,0.85);
+      border-color: rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.06);
+    }
+    #apply .btn {
+      background: #ffffff;
+      color: #000000;
+      border-color: #ffffff;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.35);
+    }
+    #apply .btn.secondary {
+      background: transparent;
+      color: rgba(255,255,255,0.92);
+      border-color: rgba(255,255,255,0.28);
+      box-shadow: none;
+    }
+
+    /* Footer */
+    footer { border-top:1px solid var(--line); padding: 32px 0; color: var(--muted); }
+
+    /* Animations */
+    .rise { opacity: 0; transform: translateY(12px); animation: rise 700ms ease forwards; }
+    .rise.delay-1 { animation-delay: .1s; } .rise.delay-2 { animation-delay:.2s; } .rise.delay-3{ animation-delay:.3s; } .rise.delay-4{ animation-delay:.4s; }
+    @keyframes rise { to { opacity: 1; transform: translateY(0); } }
+
+    .draw svg path { stroke-dasharray: 560; stroke-dashoffset: 560; animation: dash 2.2s ease forwards; }
+    @keyframes dash { to { stroke-dashoffset: 0; } }
+
+    /* Subtle decorative grid */
+    .hero-bg { position:absolute; inset:0; pointer-events:none; }
+    .gridlines { position:absolute; inset:0; background-image: linear-gradient(to right, rgba(0,0,0,.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,.06) 1px, transparent 1px); background-size: 48px 48px; mask-image: radial-gradient(ellipse at center, black 40%, transparent 75%); }
+
+    .kpi { display:grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+    .kpi .card { text-align:center; }
+    @media (max-width: 980px){ .kpi{ grid-template-columns: 1fr 1fr; } }
+
+    /* Current: */
+@media (max-width: 980px){
+  .hero .grid { grid-template-columns: 1fr; } 
+  .cards { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px){
+  .container { padding: 0 16px; }
+  .hero .cta-row { flex-direction: column; gap: 8px; }
+  .hero .draw img { width: 100%; height: auto; max-height: 400px; }
+  h1 { font-size: clamp(28px, 6vw, 36px); }
+  .lead { font-size: clamp(14px, 4vw, 16px); }
+}
+
+@media (max-width: 640px){
+  .cards { grid-template-columns: 1fr !important; }
+  .kpi { grid-template-columns: 1fr !important; }
+  .stack-lg, .stack-xl, .stack-md { gap: 16px !important; }
+}
+
+@media (max-width: 640px){
+  .split { grid-template-columns: 1fr; gap: 16px; }
+}
+
+@media (max-width: 480px){
+  footer .container { flex-direction: column; align-items: flex-start; gap: 8px; }
+}
+
+@media (max-width: 480px){
+  form button { width: 100%; }
+}
+
+.card { width: 100%; }
+
+/* Hide toggle on desktop */
+.menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+}
+
+/* Default nav */
+nav {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Mobile nav styles */
+@media (max-width: 640px) {
+  nav {
+    position: absolute;
+    top: 72px; /* below topbar */
+    right: 0;
+    background: rgba(255,255,255,0.95);
+    flex-direction: column;
+    width: 200px;
+    padding: 16px;
+    display: none; /* hidden by default */
+    box-shadow: var(--shadow);
+    border-radius: var(--radius);
+  }
+
+  nav a {
+    margin: 12px 0;
+  }
+
+  .menu-toggle {
+    display: block;
+  }
+
+  nav.active {
+    display: flex;
+  }
+}
+
+/* Announcement banner (under navbar) */
+.announcement {
+  /* Glassmorphic */
+  background: rgba(11, 15, 25, 0.75);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  backdrop-filter: blur(14px) saturate(160%);
+  color: rgba(255,255,255,0.92);
+  border-bottom: 1px solid rgba(255,255,255,0.14);
+  box-shadow: 0 14px 40px rgba(0,0,0,0.18);
+}
+.announcement .wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 24px;
+}
+.announcement .msg {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.announcement .pill {
+  font-size: 12px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  border: 1px solid rgba(255,255,255,0.20);
+  border-radius: 999px;
+  padding: 6px 10px;
+  color: rgba(255,255,255,0.86);
+  background: rgba(255,255,255,0.06);
+}
+.announcement .text { color: rgba(255,255,255,0.78); }
+.announcement .btn {
+  background: #ffffff;
+  color: #000000;
+  border-color: #ffffff;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.35);
+  white-space: nowrap;
+}
+@media (max-width: 640px){
+  .announcement .wrap { flex-direction: column; align-items: stretch; }
+  .announcement .btn { width: 100%; }
+}
+
+  </style>
+<style>
+/* Injected: logo inside header */
+header img.logo{height:90px;width:auto;display:block;border-radius:30px;vertical-align:middle}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+</style></head>
+<body>
+<div class="top-chrome">
+<header class="topbar">
+  <div class="container wrap">
+    <div class="brand">
+      <strong>
+        <img class="logo" src="./baqlabs_logo.png" style="mix-blend-mode: difference;" alt="BaQlabs logo" height="32" />
+        <span class="sr-only">BaQlabs</span>
+      </strong>
+    </div>
+    <nav>
+      <a href="#why">Why BaQlabs</a>
+      <a href="#process">Workflow</a>
+      <a href="#model">Platform</a>
+      <a href="#apply">Quant Competition</a>
+    </nav>
+    <button class="menu-toggle" aria-label="Toggle menu">
+  ☰
+</button>
+
+  </div>
+</header>
+
+<div class="announcement" role="region" aria-label="Announcement">
+  <div class="container wrap">
+    <div class="msg">
+      <span class="pill">Announcement</span>
+      <strong>Quant Competition — Season 1</strong>
+      <span class="text">Sign up now to get the rules, timeline, and submission details.</span>
+    </div>
+    <a class="btn" href="#apply">Prove your Skills</a>
+  </div>
+</div>
+
+</div>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-bg">
+        <div class="gridlines"></div>
+      </div>
+      <div class="container">
+        <div class="grid">
+          <div>
+            <span class="eyebrow rise">Research. Backtest. Validate</span>
+            <h1 class="rise delay-1">Quant Backtesting, Done Right</h1>
+            <p class="lead rise delay-2">BaQlabs is a high-fidelity backtesting platform built for quantitative traders, researchers, and developers who need realistic simulations — not simplified assumptions.</p>
+            <div class="cta-row rise delay-3">
+              <a class="btn" href="#apply">Get Started</a>
+              <a class="btn secondary" href="#model">Explore the Model</a>
+            </div>
+            <p class="rise delay-4" style="margin-top:10px; color:var(--muted)">We help you test strategies the way markets actually behave.</p>
+          </div>
+          <div class="draw rise delay-2" style="max-width: 350px;">
+           <img src="./baqlabs.png" style="border-radius: 10px; border: 1.5px solid black; height: 500px;">
+          </div>
+        </div>
+
+        <!-- KPI cards -->
+        <div class="kpi stack-lg" style="margin-top: 22px;">
+          <div class="card rise"><h3>Built for Serious Quant Research</h3><p>BaQlabs is designed to replicate real trading conditions so you can confidently evaluate strategy performance before risking capital.</p></div>
+          <div class="card rise delay-1"><h3>Realistic Market Simulation</h3><p>Run backtests using detailed historical data with accurate trade matching, execution logic, and position tracking. BaQlabs focuses on realism — so your results reflect what would have happened, not what should have happened.</p></div>
+          <div class="card rise delay-2"><h3>Execution-Aware Backtesting</h3><p>Model fills, slippage, partial executions, and order behavior under real market conditions. Understand how execution quality impacts PnL, drawdowns, and consistency.</p></div>
+          <div class="card rise delay-3"><h3>Flexible Strategy Design</h3><p>Whether you’re testing systematic strategies, discretionary rulesets, or reinforcement-learning agents, BaQlabs adapts to your workflow. Bring your own logic. Control your assumptions.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WHY US -->
+    <section id="why">
+      <div class="container stack-xl">
+        <div>
+          <h2 style="font-size:34px; line-height:1.2; margin:0 0 8px">Why BaQlabs</h2>
+          <p class="lead" style="margin:0">
+            A research-first platform built to test strategies under realistic market conditions.
+          </p>
+        </div>
+        <div class="split">
+          <div class="card">
+            <h3>What we provide</h3>
+            <ul class="stack-md" style="margin:0; padding-left:18px">
+              <li>High-quality institutional-grade market data and curation.</li>
+              <li>HFT-caliber backtesting infrastructure and compute.</li>
+              <li>BaQlabs simulations that closely replicate real market behavior.</li>
+              <li>Research tooling, analytics, and performance evaluation.</li>
+              <li>A structured environment for validating and iterating strategies.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>What you bring</h3>
+            <ul class="stack-md" style="margin:0; padding-left:18px">
+              <li>Original, hypothesis-driven trading ideas.</li>
+              <li>Clear articulation of edge with sound validation logic.</li>
+              <li>Discipline, iteration speed, and stewardship mindset.</li>
+              <li>Willingness to document, test, and refine assumptions.</li>
+              <li>A long-term mindset focused on repeatable performance.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+<!-- MODEL -->
+<section id="model">
+  <div class="container stack-xl">
+    <div>
+      <h2 style="font-size:34px; line-height:1.2; margin:0 0 8px">Platform model</h2>
+      <p class="lead" style="margin:0">
+        You design and test strategies. BaQlabs provides the infrastructure,
+        simulation engine, and analytics to validate them realistically.
+      </p>
+    </div>
+
+    <!-- Align workflow card with the 2x2 grid (top + bottom) -->
+    <div class="split" style="align-items: stretch;">
+      <div class="cards" style="margin-top:18px; grid-template-columns: repeat(2,1fr)">
+        <div class="card">
+          <h3>Data</h3>
+          <p>High-quality historical market data curated for execution-aware backtesting.</p>
+        </div>
+        <div class="card">
+          <h3>Simulation</h3>
+          <p>Market-replica backtests with realistic fills, timing, and order behavior.</p>
+        </div>
+        <div class="card">
+          <h3>Tooling</h3>
+          <p>BaQlabs backtesting engine, analytics, and research workflows.</p>
+        </div>
+        <div class="card">
+          <h3>Transparency</h3>
+          <p>Full visibility into trades, metrics, assumptions, and failure modes.</p>
+        </div>
+      </div>
+      <div class="card" style="margin-top:18px">
+        <h3>Typical workflow</h3>
+        <ol class="stack-md" style="margin:0; padding-left:18px">
+          <li>Define strategy hypothesis and assumptions.</li>
+          <li>Implement logic and execution intent.</li>
+          <li>Run market-replica backtests in BaQlabs.</li>
+          <li>Analyze performance, robustness, and risk.</li>
+          <li>Iterate and refine based on results.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+    <!-- PROCESS -->
+<section id="process">
+  <div class="container stack-xl">
+    <h2 style="font-size:34px; line-height:1.2; margin:0">Backtesting Flow</h2>
+    <p class="lead">
+      BaQlabs provides a structured workflow for designing, testing, and validating
+      quantitative trading strategies with realistic market behavior.
+    </p>
+
+    <div class="stepper">
+      <!-- Step list (all visible, scroll-controlled) -->
+      <div class="step-list">
+        <div class="step-item active" data-step="1">
+          <span class="step-num">1</span>
+          <div class="step-text">
+            <h3>Define the hypothesis</h3>
+            <p>Clearly outline the idea, assumptions, and market conditions the strategy targets.</p>
+          </div>
+        </div>
+        <div class="step-item" data-step="2">
+          <span class="step-num">2</span>
+          <div class="step-text">
+            <h3>Implement the strategy</h3>
+            <p>Translate logic into executable rules with precise data handling and execution intent.</p>
+          </div>
+        </div>
+        <div class="step-item" data-step="3">
+          <span class="step-num">3</span>
+          <div class="step-text">
+            <h3>Market-replica backtesting</h3>
+            <p>Simulate trades using BaQlabs' execution-aware market replay.</p>
+          </div>
+        </div>
+        <div class="step-item" data-step="4">
+          <span class="step-num">4</span>
+          <div class="step-text">
+            <h3>Analyze performance</h3>
+            <p>Review PnL, drawdowns, fills, trade distribution, and failure cases.</p>
+          </div>
+        </div>
+        <div class="step-item" data-step="5">
+          <span class="step-num">5</span>
+          <div class="step-text">
+            <h3>Iterate and refine</h3>
+            <p>Adjust parameters, logic, and assumptions through fast, repeatable testing.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- APPLY FORM -->
+<section id="apply">
+  <div class="container split">
+    <div>
+      <img class="comp-logo" src="./Quantegiesxbaqlabs.png" alt="Quantegies x BaQlabs" />
+      <h2 style="font-size:34px; line-height:1.2; margin:0 0 8px">BaQlabs Quant Competition</h2>
+      <p class="lead">
+        Ready to compete? Sign up to get the competition details, rules, and next steps.
+      </p>
+      <div class="cta-row" style="margin-top: 18px;">
+        <a class="btn" href="https://forms.office.com/pages/responsepage.aspx?id=PnNpdU5_3kWEK3Lg1HB0Bpcjst8kTvNFjPc-VBCq_AVUNTRSMTJEVEs3RDZYTDRHM09OOUEwVFNRNi4u&route=shorturl" target="_blank" rel="noopener noreferrer">Sign up for the Quant Competition</a>
+      </div>
+      <p style="margin-top: 12px; color: var(--muted)">
+        This opens the signup form in a new tab.
+      </p>
+    </div>
+
+    <div class="stack-lg">
+      <div class="card">
+        <div class="badge">Competition</div>
+        <h3>Showcase your edge</h3>
+        <p>
+          Build and explain a strategy with clear assumptions, robust validation, and thoughtful risk controls.
+        </p>
+      </div>
+      <div class="card">
+        <div class="badge">Evaluation</div>
+        <h3>Backtests that reflect reality</h3>
+        <p>
+          We care about execution-aware research — not just headline returns. Expect emphasis on realism and rigor.
+        </p>
+      </div>
+      <div class="card">
+        <div class="badge">Next steps</div>
+        <h3>Get the rules & timeline</h3>
+        <p>
+          Sign up to receive the competition brief, submission instructions, and important dates.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="container stack-xl">
+    <h2 style="font-size:34px; line-height:1.2; margin:0">FAQ</h2>
+    <div class="cards" style="grid-template-columns: 1fr 1fr;">
+      <div class="card">
+        <h3>What is BaQlabs?</h3>
+        <p>
+          BaQlabs is a quantitative backtesting platform focused on realistic market simulation.
+        </p>
+      </div>
+      <div class="card">
+        <h3>What markets are supported?</h3>
+        <p>
+          Futures, equities, and options, with execution-aware backtests.
+        </p>
+      </div>
+      <div class="card">
+        <h3>Is this just price-based testing?</h3>
+        <p>
+          No. BaQlabs models execution behavior beyond simple OHLC backtests.
+        </p>
+      </div>
+      <div class="card">
+        <h3>Who is this for?</h3>
+        <p>
+          Traders and researchers who want realistic, repeatable strategy validation.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="container" style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+    <div>© <span id="year"></span> BaQlabs. All rights reserved.</div>
+    <div class="brand" style="gap:8px">
+      <strong>BaQlabs</strong>
+      <span style="color:var(--muted)">Quant Backtesting</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const toggle = document.querySelector('.menu-toggle');
+  const nav = document.querySelector('nav');
+  toggle.addEventListener('click', () => {
+    nav.classList.toggle('active');
+  });
+
+  // Optional: close menu on link click
+  nav.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => nav.classList.remove('active'));
+  });
+
+  // Scroll-hijack stepper
+  const processSection = document.getElementById('process');
+  const stepItems = document.querySelectorAll('.step-item');
+  const totalSteps = stepItems.length;
+  let currentStep = 1;
+  let isLocked = false;
+  let scrollAccumulator = 0;
+  const scrollThreshold = 100; // pixels of scroll needed to advance step
+  let hasTriggeredOnce = false; // one-time behavior per page load
+  let stepperEnabled = true;
+  let lastScrollY = window.scrollY;
+
+  function setActiveStep(step) {
+    stepItems.forEach(item => {
+      item.classList.remove('active', 'completed');
+      const itemStep = parseInt(item.dataset.step);
+      if (itemStep < step) {
+        item.classList.add('completed');
+      }
+      if (itemStep === step) {
+        item.classList.add('active');
+      }
+    });
+  }
+
+  // Click still works for manual navigation
+  stepItems.forEach(item => {
+    item.addEventListener('click', () => {
+      currentStep = parseInt(item.dataset.step);
+      setActiveStep(currentStep);
+    });
+  });
+
+  // Scroll hijack logic
+  function handleWheel(e) {
+    if (!isLocked) return;
+
+    e.preventDefault();
+    scrollAccumulator += e.deltaY;
+
+    if (scrollAccumulator > scrollThreshold) {
+      // Scroll down - next step
+      scrollAccumulator = 0;
+      if (currentStep < totalSteps) {
+        currentStep++;
+        setActiveStep(currentStep);
+      } else {
+        // Done with all steps - unlock and disable (one-time)
+        disableStepper();
+      }
+    } else if (scrollAccumulator < -scrollThreshold) {
+      // Scroll up - previous step
+      scrollAccumulator = 0;
+      if (currentStep > 1) {
+        currentStep--;
+        setActiveStep(currentStep);
+      } else {
+        // Exit upward - unlock and disable (one-time)
+        disableStepper();
+      }
+    }
+  }
+
+  function lockScroll() {
+    if (isLocked) return;
+    isLocked = true;
+    scrollAccumulator = 0;
+    hasTriggeredOnce = true;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('wheel', handleWheel, { passive: false });
+  }
+
+  function unlockScroll() {
+    if (!isLocked) return;
+    isLocked = false;
+    document.body.style.overflow = '';
+    window.removeEventListener('wheel', handleWheel);
+  }
+
+  function disableStepper() {
+    if (!stepperEnabled) return;
+    stepperEnabled = false;
+    unlockScroll();
+    window.removeEventListener('scroll', onScroll);
+  }
+
+  // Get header height for calculations
+  const headerHeight = document.querySelector('.top-chrome')?.offsetHeight || 160;
+
+  // Check if section is in the "lock zone" (top of section near top of viewport)
+  function isSectionInLockZone() {
+    const rect = processSection.getBoundingClientRect();
+    const sectionTop = rect.top;
+    const sectionBottom = rect.bottom;
+    const viewportHeight = window.innerHeight;
+    
+    // Start a bit lower (later): wait until we've scrolled further into the section
+    // AND the section bottom is still below the viewport (we haven't scrolled past it)
+    const lockTopMax = headerHeight - 20;
+    const lockTopMin = headerHeight - 220;
+    return sectionTop <= lockTopMax &&
+           sectionTop >= lockTopMin &&
+           sectionBottom > viewportHeight * 0.5;
+  }
+
+  // Use scroll event to detect when we enter the section
+  let ticking = false;
+  function onScroll() {
+    if (!stepperEnabled || isLocked || hasTriggeredOnce) {
+      lastScrollY = window.scrollY;
+      return;
+    }
+    if (ticking) return;
+    ticking = true;
+    
+    requestAnimationFrame(() => {
+      ticking = false;
+
+      // Only trigger while scrolling DOWN into the section
+      const currentY = window.scrollY;
+      const direction = currentY > lastScrollY ? 1 : (currentY < lastScrollY ? -1 : 0);
+      lastScrollY = currentY;
+      if (direction !== 1) return;
+
+      if (isSectionInLockZone()) {
+        currentStep = 1;
+        setActiveStep(currentStep);
+        lockScroll();
+      }
+    });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  // Also handle keyboard arrows for accessibility
+  document.addEventListener('keydown', (e) => {
+    if (!isLocked) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+      e.preventDefault();
+      if (currentStep < totalSteps) {
+        currentStep++;
+        setActiveStep(currentStep);
+      } else {
+        disableStepper();
+      }
+    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+      e.preventDefault();
+      if (currentStep > 1) {
+        currentStep--;
+        setActiveStep(currentStep);
+      } else {
+        disableStepper();
+      }
+    }
+  });
+</script>
